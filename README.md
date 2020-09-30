@@ -33,7 +33,7 @@ oc get hpa
 
 ```
 NAME         REFERENCE                     TARGET    MINPODS   MAXPODS   REPLICAS   AGE
-php-apache   Deployment/php-apache/scale   0% / 50%  1         10        1          18s
+go-webserver   Deployment/go-webserver/scale   0% / 50%  1         10        1          18s
 ```
 
 
