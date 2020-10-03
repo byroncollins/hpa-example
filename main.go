@@ -1,21 +1,26 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"math"
 	"net/http"
 )
 
 func status(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("ok"))
+	fmt.Fprint(w, "ok")
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
+	/*
+		Taken from hpa example that uses php
+		https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale-walkthrough/#run-expose-php-apache-server
+	*/
 	x := 0.0001
 	for i := 0; i <= 1000000; i++ {
 		x += math.Sqrt(x)
 	}
-	w.Write([]byte("OK!"))
+	fmt.Fprint(w, "OK!")
 }
 
 func main() {

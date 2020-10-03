@@ -2,16 +2,34 @@ name: Build and Publish Docker
 on: [push]
 jobs:
   build_and_publish:
+    env:
+      TAG: 1.15.2-alpine
+      GO_VERSION: 1.15
     runs-on: ubuntu-latest
     steps:
+    - name: Set up Go 1.x
+      uses: actions/setup-go@v2
+      with:
+        go-version: ^${GO_VERSION}
+      id: go
+
     - name: checkout code
       uses: actions/checkout@v2
-      
+
+    - name: hadolint
+      run: |
+        docker run --rm -i hadolint/hadolint < Dockerfile
+
+    - name: go test
+      run: |
+        go test
+
     - name: Build and push Docker images
       uses: docker/build-push-action@v1
       with:
+        build_args: ${TAG}
         dockerfile: Dockerfile
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
         repository: byroncollins/hpa-example
-        tags: latest
+        tags: ${GO_VERSION}
