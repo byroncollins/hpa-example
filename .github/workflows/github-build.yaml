@@ -23,7 +23,8 @@ jobs:
 
     - name: get go version
       run: |
-        go version | awk '{print $3}' > GO_VERSION
+        echo "::set-output name=version::$(go version | awk '{print $3}'"
+      id: go_version
 
     - name: checkout code
       uses: actions/checkout@v2
@@ -39,7 +40,7 @@ jobs:
     - name: Build and push Docker images
       uses: docker/build-push-action@v1
       with:
-        build_args: TAG=${{ env.TAG }},GO_VERSION=$(cat GO_VERSION)
+        build_args: TAG=${{ env.TAG }},GO_VERSION=${{ steps.go_version.outputs.version }}
         dockerfile: Dockerfile
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
