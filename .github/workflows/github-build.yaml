@@ -23,7 +23,7 @@ jobs:
 
     - name: get go version
       run: |
-        echo "::set-output name=version::$(go version | awk '{print $3}'"
+        echo "::set-output name=version::$(go version | awk '{print $3}')"
       id: go_version
 
     - name: checkout code
