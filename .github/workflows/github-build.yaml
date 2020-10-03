@@ -1,15 +1,28 @@
 name: Build and Publish Docker
-on: [push]
+on:
+  push:
+    branches: 
+      - master
+    paths: 
+      - "*"
+      - "!README.md"
+  schedule:
+    - cron: "0 0 * * 0"
 jobs:
-  build_and_publish:
+  build_test_and_publish:
     env:
-      TAG: 1.15.2-alpine
+      TAG: 1.15-alpine
     runs-on: ubuntu-latest
     steps:
     - name: Set up Go 1.x
       uses: actions/setup-go@v2
       with:
-        go-version: '^1.15'
+        go-version: '1.15'
+      id: go
+
+    - name: get go version
+      run: |
+        echo "::set-output name=version::$(go version | awk '{print $3}')"
       id: go
 
     - name: checkout code
@@ -26,7 +39,7 @@ jobs:
     - name: Build and push Docker images
       uses: docker/build-push-action@v1
       with:
-        build_args: TAG=${{ env.TAG }}
+        build_args: TAG=${{ env.TAG }} GO_VERSION=${{ steps.go.outputs.version }}
         dockerfile: Dockerfile
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
