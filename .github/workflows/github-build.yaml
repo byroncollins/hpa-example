@@ -17,7 +17,7 @@ jobs:
 
     - name: hadolint
       run: |
-        docker run --rm -i hadolint/hadolint < Dockerfile
+        docker run --rm -it hadolint/hadolint < Dockerfile
 
     - name: go test
       run: |
@@ -31,4 +31,4 @@ jobs:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
         repository: byroncollins/hpa-example
-        tags: ${GO_VERSION}
+        tags: latest
