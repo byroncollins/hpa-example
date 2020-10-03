@@ -3,9 +3,10 @@ on:
   push:
     branches: 
       - master
-    paths: 
-      - "*"
+    paths-ignore:
       - "!README.md"
+      - "!LICENSE"
+      - "!manifests/**"
   schedule:
     - cron: "0 0 * * 0"
 jobs:
