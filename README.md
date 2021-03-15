@@ -2,14 +2,30 @@
 
 Horizontal Pod Autoscaler automatically scales the number of Pods in a replication controller, deployment, replica set or stateful set based on observed CPU utilization (or, with beta support, on some other, application-provided metrics).
 
-The default hpa-example doesnt run in OpenShift
+Based on https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale-walkthrough/ but implemented in Go as a scratch container and doesn't run as root.
 
 
-# Run go-webserver
+# Deploy go-webserver
+
+Deploy straight from github or locally.
+
+Prequisites: 
+1. OpenShift must be able to access `docker.io` images.
+2. (Optional) Create new project/namespace such as: `oc new-project hpa-example`
+
+### 1. Deploy straight from github
 
 ```bash
-oc apply -f https://github/byroncollins/manifests/hpa-example.yaml
+oc apply -f https://raw.githubusercontent.com/byroncollins/hpa-example/master/manifests/hpa-example.yaml
 ```
+### 2. Deploy locally
+
+```bash
+git clone https://github.com/byroncollins/hpa-example.git
+oc apply -f hpa-example/manifests/hpa-example.yaml
+```
+
+### Successful deploy
 
 ```
 deployment.apps/go-webserver created
@@ -18,14 +34,15 @@ service/go-webserver created
 
 # Create Horizontal Pod Autoscaler
 
+Configure horizontal pod autoscaler (must be run in same namespace as `go-webserver`)
 ```bash
 oc autoscale deployment go-webserver --cpu-percent=50 --min=1 --max=10
 ```
 ```
-horizontalpodautoscaler.autoscaling/php-apache autoscaled
+horizontalpodautoscaler.autoscaling/go-webserver autoscaled
 ```
 
-We may check the current status of autoscaler by running:
+Check the current status of autoscaler by running the following in the same namespace:
 
 ```bash
 oc get hpa
@@ -36,28 +53,29 @@ NAME         REFERENCE                     TARGET    MINPODS   MAXPODS   REPLICA
 go-webserver   Deployment/go-webserver/scale   0% / 50%  1         10        1          18s
 ```
 
-
 # Generate some load
 
-Now, we will see how the autoscaler reacts to increased load. We will start a container, and send an infinite loop of queries to the php-apache service (please run it in a different terminal):
+Now, we will see how the autoscaler reacts to increased load. We will start a new busybox container, and send an infinite loop of queries to the go-webserver service.
 
+Open a new terminal window and login to openshift as before, then run the following to enter the command prompt of the busybox:
 
 ```bash
 oc run -it --rm load-generator --image=busybox /bin/sh
 ```
 
-Hit enter for command prompt
+Run the performance load:
 
 ```bash
 while true; do wget -q -O- http://go-webserver:8080; done
 ```
 
-watch hpa and pods in another terminal
+Watch hpa and pods in another terminal:
 
 ```bash
 watch -n3 "echo "oc get hpa"; oc get hpa ;  echo "oc get deployment go-webserver" ;oc get deployment go-webserver ; echo "oc get pods -l run=go-webserver" ; oc get pods -l run=go-webserver"
 ```
 
+The following should be displayed and refreshed every 3 seconds:
 ```bash
 Every 3.0s: echo oc get hpa; oc get hpa ;  echo oc get deployment go-webserver ;oc get de...  byroncserver: Sat Oct  3 15:57:20 2020
 
@@ -76,9 +94,5 @@ Note: It may take a few minutes to stabilize the number of replicas. Since the a
 
 # Stop load
 
-We will finish our example by stopping the user load.
-
-In the terminal where we created the container with busybox image, terminate the load generation by typing "\<Ctrl\> + C".
-
-Then we will verify the result state (after a minute or so):
+Stop the performance load by typing `ctrl+c` in the terminal used to build the busybox container and run the load.
 
